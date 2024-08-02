@@ -1,0 +1,26 @@
+name: 'duplojs action semver'
+description: 'Compute semver from pull request titles.'
+inputs:
+  GITHUB_TOKEN:
+    required: true
+  GITHUB_OWNER:
+    required: true
+  GITHUB_REPO:
+    required: true
+  GITHUB_BRANCHE:
+    required: true
+  REGEXP_PATCH:
+    required: true
+  REGEXP_MINOR:
+    required: true
+  REGEXP_MAJOR:
+    required: true
+  PER_PAGE:
+    required: false
+outputs:
+  COMPUTED_VERSION:
+    description: 'Computed semver.'
+
+runs:
+  using: 'node20'
+  main: 'main.js'
