@@ -12,50 +12,50 @@ const inputs = zod.object({
     REGEXP_MAJOR: zod.string({ message: "Missing ENV var REGEXP_MAJOR." }).transform(value => new RegExp(value)),
     PER_PAGE: zod.coerce.number().default(30),
 }).parse({
-    GITHUB_TOKEN: core.getInput("GITHUB_TOKEN"),
-    GITHUB_OWNER: core.getInput("GITHUB_OWNER"),
-    GITHUB_REPO: core.getInput("GITHUB_REPO"),
-    GITHUB_BRANCHE: core.getInput("GITHUB_BRANCHE"),
-    REGEXP_PATCH: core.getInput("REGEXP_PATCH"),
-    REGEXP_MINOR: core.getInput("REGEXP_MINOR"),
-    REGEXP_MAJOR: core.getInput("REGEXP_MAJOR"),
-    PER_PAGE: core.getInput("PER_PAGE", {required: false}),
+    GITHUB_TOKEN: core.getInput("GITHUB_TOKEN") || undefined,
+    GITHUB_OWNER: core.getInput("GITHUB_OWNER") || undefined,
+    GITHUB_REPO: core.getInput("GITHUB_REPO") || undefined,
+    GITHUB_BRANCHE: core.getInput("GITHUB_BRANCHE") || undefined,
+    REGEXP_PATCH: core.getInput("REGEXP_PATCH") || undefined,
+    REGEXP_MINOR: core.getInput("REGEXP_MINOR") || undefined,
+    REGEXP_MAJOR: core.getInput("REGEXP_MAJOR") || undefined,
+    PER_PAGE: core.getInput("PER_PAGE", {required: false}) || undefined,
 });
 
 const octokit = new Octokit({
     auth: inputs.GITHUB_TOKEN
 });
 
-const pullRequestTitles = await (
-    async function getPullRequestTitles(page = 1){
-        const pullRequests = await octokit.pulls.list({
+const closedPullRequestCollection = await (
+    async function getPullRequestTitles(page = 1): Promise<Awaited<ReturnType<typeof octokit.pulls.list>>["data"]>
+    {
+        const closedPullRequests = await octokit.pulls.list({
             owner: inputs.GITHUB_OWNER,
             repo: inputs.GITHUB_REPO,
             state: "closed",
             base: inputs.GITHUB_BRANCHE,
-            sort: "created",
-            direction: "desc",
             per_page: inputs.PER_PAGE,
             page: page,
         });
 
-        let titles = pullRequests.data
-            .filter(pull => pull.merged_at !== null)
-            .map(pull => pull.title)
-            .reverse();
-
-        if(pulls.data.length === 30) {
-            titles = [...await getPullRequestTitles(page + 1), ...titles];
+        if(closedPullRequests.data.length === inputs.PER_PAGE) {
+            return [...await getPullRequestTitles(page + 1), ...closedPullRequests.data];
         }
-
-        return titles;
+        else {
+            return closedPullRequests.data;
+        }
     }
 )();
+
+const mergedPullRequestTitleCollection = closedPullRequestCollection
+    .filter(pullRequest => !!pullRequest.merged_at)
+    .sort((a, b) => Date.parse(a.merged_at || "") - Date.parse(b.merged_at || ""))
+    .map(pullRequest => pullRequest.title);
 
 let major = 0;
 let minor = 0;
 let patch = 0;
-for(const title of pullRequestTitles){
+for(const title of mergedPullRequestTitleCollection){
     if(inputs.REGEXP_PATCH.test(title)){
         patch++;
     }
