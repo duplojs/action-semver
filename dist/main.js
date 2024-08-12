@@ -2,25 +2,44 @@ import { Octokit } from '@octokit/rest';
 import core from '@actions/core';
 import { z } from 'zod';
 
-const inputs = z.object({
-  GITHUB_TOKEN: z.string({ message: "Missing ENV var GITHUB_TOKEN." }),
-  GITHUB_OWNER: z.string({ message: "Missing ENV var GITHUB_OWNER." }),
-  GITHUB_REPO: z.string({ message: "Missing ENV var GITHUB_REPO." }),
-  GITHUB_BRANCHE: z.string({ message: "Missing ENV var GITHUB_BRANCHE." }),
-  REGEXP_PATCH: z.string({ message: "Missing ENV var REGEXP_PATCH." }).transform((value) => new RegExp(value)),
-  REGEXP_MINOR: z.string({ message: "Missing ENV var REGEXP_MINOR." }).transform((value) => new RegExp(value)),
-  REGEXP_MAJOR: z.string({ message: "Missing ENV var REGEXP_MAJOR." }).transform((value) => new RegExp(value)),
-  PER_PAGE: z.coerce.number().default(30)
-}).parse({
-  GITHUB_TOKEN: core.getInput("GITHUB_TOKEN") || void 0,
-  GITHUB_OWNER: core.getInput("GITHUB_OWNER") || void 0,
-  GITHUB_REPO: core.getInput("GITHUB_REPO") || void 0,
-  GITHUB_BRANCHE: core.getInput("GITHUB_BRANCHE") || void 0,
-  REGEXP_PATCH: core.getInput("REGEXP_PATCH") || void 0,
-  REGEXP_MINOR: core.getInput("REGEXP_MINOR") || void 0,
-  REGEXP_MAJOR: core.getInput("REGEXP_MAJOR") || void 0,
-  PER_PAGE: core.getInput("PER_PAGE", { required: false }) || void 0
-});
+const inputsKey = {
+  GITHUB_TOKEN: "GITHUB_TOKEN",
+  GITHUB_OWNER: "GITHUB_OWNER",
+  GITHUB_REPO: "GITHUB_REPO",
+  GITHUB_BRANCHE: "GITHUB_BRANCHE",
+  REGEXP_PATCH: "REGEXP_PATCH",
+  REGEXP_MINOR: "REGEXP_MINOR",
+  REGEXP_MAJOR: "REGEXP_MAJOR",
+  PATCH_START_AT: "PATCH_START_AT",
+  MINOR_START_AT: "MINOR_START_AT",
+  MAJOR_START_AT: "MAJOR_START_AT",
+  OUTPUT_FORMAT: "OUTPUT_FORMAT",
+  PER_PAGE: "PER_PAGE"
+};
+const inputs = z.object(
+  {
+    [inputsKey.GITHUB_TOKEN]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_TOKEN}.` }),
+    [inputsKey.GITHUB_OWNER]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_OWNER}.` }),
+    [inputsKey.GITHUB_REPO]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_REPO}.` }),
+    [inputsKey.GITHUB_BRANCHE]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_BRANCHE}.` }),
+    [inputsKey.REGEXP_PATCH]: z.string({ message: `Missing ENV var ${inputsKey.REGEXP_PATCH}.` }).transform((value) => new RegExp(value)),
+    [inputsKey.REGEXP_MINOR]: z.string({ message: `Missing ENV var ${inputsKey.REGEXP_MINOR}.` }).transform((value) => new RegExp(value)),
+    [inputsKey.REGEXP_MAJOR]: z.string({ message: `Missing ENV var ${inputsKey.REGEXP_MAJOR}.` }).transform((value) => new RegExp(value)),
+    [inputsKey.PATCH_START_AT]: z.coerce.number().default(0),
+    [inputsKey.MINOR_START_AT]: z.coerce.number().default(0),
+    [inputsKey.MAJOR_START_AT]: z.coerce.number().default(0),
+    [inputsKey.OUTPUT_FORMAT]: z.string().default("{MAJOR}.{MINOR}.{PATCH}"),
+    [inputsKey.PER_PAGE]: z.coerce.number().default(30)
+  }
+).parse(
+  Object.values(inputsKey).reduce(
+    (pv, value) => ({
+      ...pv,
+      [value]: core.getInput(value, { required: false }) || void 0
+    }),
+    {}
+  )
+);
 const octokit = new Octokit({
   auth: inputs.GITHUB_TOKEN
 });
@@ -40,9 +59,9 @@ const closedPullRequestCollection = await async function getPullRequestTitles(pa
   }
 }();
 const mergedPullRequestTitleCollection = closedPullRequestCollection.filter((pullRequest) => !!pullRequest.merged_at).sort((a, b) => Date.parse(a.merged_at || "") - Date.parse(b.merged_at || "")).map((pullRequest) => pullRequest.title);
-let major = 0;
-let minor = 0;
-let patch = 0;
+let major = inputs.MAJOR_START_AT;
+let minor = inputs.MINOR_START_AT;
+let patch = inputs.PATCH_START_AT;
 for (const title of mergedPullRequestTitleCollection) {
   if (inputs.REGEXP_PATCH.test(title)) {
     patch++;
@@ -55,4 +74,7 @@ for (const title of mergedPullRequestTitleCollection) {
     major++;
   }
 }
-core.setOutput("COMPUTED_VERSION", `${major}.${minor}.${patch}`);
+core.setOutput(
+  "COMPUTED_VERSION",
+  inputs.OUTPUT_FORMAT.replace("{MAJOR}", major.toString()).replace("{MINOR}", minor.toString()).replace("{PATCH}", patch.toString())
+);

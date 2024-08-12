@@ -1,0 +1,2 @@
+npm run build:scripts
+git add dist/**

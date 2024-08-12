@@ -10,12 +10,23 @@ inputs:
     required: true
   GITHUB_BRANCHE:
     required: true
+
   REGEXP_PATCH:
     required: true
   REGEXP_MINOR:
     required: true
   REGEXP_MAJOR:
     required: true
+
+  PATCH_START_AT: 
+    required: false
+  MINOR_START_AT:
+    required: false
+  MAJOR_START_AT:
+    required: false
+    
+  OUTPUT_FORMAT: 
+    required: false
   PER_PAGE:
     required: false
 

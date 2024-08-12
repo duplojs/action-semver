@@ -3,7 +3,8 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "build:scripts": "rollup --config"
+    "build:scripts": "rollup --config",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +15,10 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.2.2",
     "@types/node": "22.1.0",
+    "husky": "^9.1.4",
     "rollup": "4.19.2",
     "rollup-plugin-esbuild": "6.1.1",
     "typescript": "5.5.4"

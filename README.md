@@ -9,9 +9,9 @@ with:
   GITHUB_OWNER: duplojs
   GITHUB_REPO: action-semver
   GITHUB_BRANCHE: main
-  REGEXP_PATCH: '^fix\\('
-  REGEXP_MINOR: '^feat\\('
-  REGEXP_MAJOR: '^break\\('
+  REGEXP_PATCH: '^fix'
+  REGEXP_MINOR: '^feat'
+  REGEXP_MAJOR: '^break'
 ```
 
 ## Inputs
@@ -24,14 +24,22 @@ with:
 ### `GITHUB_BRANCHE`
 **Required** Branche target : `GITHUB_BRANCHE: main`.
 ### `REGEXP_PATCH`
-**Required** Regex wich match with PATCH pull request title : `REGEXP_PATCH: '^fix\\('`.
+**Required** Regex wich match with PATCH pull request title : `REGEXP_PATCH: '^fix'`.
 ### `REGEXP_MINOR`
-**Required** Regex wich match with MINOR pull request title : `REGEXP_MINOR: '^feat\\('`.
+**Required** Regex wich match with MINOR pull request title : `REGEXP_MINOR: '^feat'`.
 ### `REGEXP_MAJOR`
-**Required** Regex wich match with MAJOR pull request title : `REGEXP_MAJOR: '^break\\('`.
+**Required** Regex wich match with MAJOR pull request title : `REGEXP_MAJOR: '^break'`.
+### `PATCH_START_AT`
+**Optional** number at which it begins patch : `PATCH_START_AT: 0` (default `0`).
+### `MINOR_START_AT`
+**Optional** number at which it begins minor : `MINOR_START_AT: 16` (default `0`).
+### `MAJOR_START_AT`
+**Optional** number at which it begins major : `MAJOR_START_AT: 20` (default `0`).
+### `OUTPUT_FORMAT`
+**Optional** output format of computed version : `OUTPUT_FORMAT: v{MAJOR}.{MINOR}.{PATCH}` (default `{MAJOR}.{MINOR}.{PATCH}`).
 ### `PER_PAGE`
-**Optional** Number of pull requests taken per request : `PER_PAGE: 30`.
+**Optional** Number of pull requests taken per request : `PER_PAGE: 10` (default `30`).
 
 ## Outputs
 ### COMPUTED_VERSION
-Computed version as `major.minor.patch`.
+Computed version is as same format input waht `OUTPUT_FORMAT`.
