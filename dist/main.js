@@ -1,6 +1,6 @@
-import { Octokit } from '@octokit/rest';
 import core from '@actions/core';
 import { z } from 'zod';
+import { Octokit } from '@octokit/rest';
 
 const inputsKey = {
   GITHUB_TOKEN: "GITHUB_TOKEN",

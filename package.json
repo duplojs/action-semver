@@ -1,6 +1,5 @@
 {
   "name": "action-semver",
-  "main": "main.js",
   "type": "module",
   "scripts": {
     "build:scripts": "rollup --config",

@@ -1,6 +1,6 @@
-import { Octokit } from "@octokit/rest";
 import core from "@actions/core";
 import { z as zod, ZodType } from "zod";
+import { Octokit } from "@octokit/rest";
 
 type InputsKey =
     | "GITHUB_TOKEN"
