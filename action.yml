@@ -27,6 +27,8 @@ inputs:
     
   OUTPUT_FORMAT: 
     required: false
+  CURRENT_PULL_REQUEST_TITLE: 
+    required: false
   PER_PAGE:
     required: false
 

@@ -17,6 +17,7 @@ type InputsKey =
     | "MAJOR_START_AT"
 
     | "OUTPUT_FORMAT"
+    | "CURRENT_PULL_REQUEST_TITLE"
     | "PER_PAGE"
 
 const inputsKey: { [P in InputsKey]: P } = {
@@ -34,6 +35,7 @@ const inputsKey: { [P in InputsKey]: P } = {
     MAJOR_START_AT: "MAJOR_START_AT",
 
     OUTPUT_FORMAT: "OUTPUT_FORMAT",
+    CURRENT_PULL_REQUEST_TITLE: "CURRENT_PULL_REQUEST_TITLE",
     PER_PAGE: "PER_PAGE",
 }
 
@@ -53,8 +55,8 @@ const inputs = zod.object(
         [inputsKey.MAJOR_START_AT]: zod.coerce.number().default(0),
 
         [inputsKey.OUTPUT_FORMAT]: zod.string().default("{MAJOR}.{MINOR}.{PATCH}"),
+        [inputsKey.CURRENT_PULL_REQUEST_TITLE]: zod.string().optional(),
         [inputsKey.PER_PAGE]: zod.coerce.number().default(30),
-
     } satisfies Record<InputsKey, ZodType>
 ).parse(
     Object.values(inputsKey).reduce(
@@ -95,6 +97,10 @@ const mergedPullRequestTitleCollection = closedPullRequestCollection
     .filter(pullRequest => !!pullRequest.merged_at)
     .sort((a, b) => Date.parse(a.merged_at || "") - Date.parse(b.merged_at || ""))
     .map(pullRequest => pullRequest.title);
+
+if(inputs.CURRENT_PULL_REQUEST_TITLE){
+    mergedPullRequestTitleCollection.push(inputs.CURRENT_PULL_REQUEST_TITLE);
+}
 
 let major = inputs.MAJOR_START_AT;
 let minor = inputs.MINOR_START_AT;
