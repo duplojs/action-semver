@@ -6,8 +6,7 @@ A simple compute semver from pull request titles.
 uses: duplojs/action-semver
 with:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  GITHUB_OWNER: duplojs
-  GITHUB_REPO: action-semver
+  GITHUB_REPOSITORY: ${{ github.repository }}
   GITHUB_BRANCHE: main
   REGEXP_PATCH: '^fix'
   REGEXP_MINOR: '^feat'
@@ -17,10 +16,8 @@ with:
 ## Inputs
 ### `GITHUB_TOKEN`
 **Required** Token github action : `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}`.
-### `GITHUB_OWNER`
-**Required** Owner or organization name : `GITHUB_OWNER: duplojs`.
-### `GITHUB_REPO`
-**Required** Repository name : `GITHUB_REPO: action-semver`.
+### `GITHUB_REPOSITORY`
+**Required** your repository name : `GITHUB_REPOSITORY: ${{ github.repository }}`.
 ### `GITHUB_BRANCHE`
 **Required** Branche target : `GITHUB_BRANCHE: main`.
 ### `REGEXP_PATCH`

@@ -4,8 +4,7 @@ import { Octokit } from '@octokit/rest';
 
 const inputsKey = {
   GITHUB_TOKEN: "GITHUB_TOKEN",
-  GITHUB_OWNER: "GITHUB_OWNER",
-  GITHUB_REPO: "GITHUB_REPO",
+  GITHUB_REPOSITORY: "GITHUB_REPOSITORY",
   GITHUB_BRANCHE: "GITHUB_BRANCHE",
   REGEXP_PATCH: "REGEXP_PATCH",
   REGEXP_MINOR: "REGEXP_MINOR",
@@ -20,8 +19,20 @@ const inputsKey = {
 const inputs = z.object(
   {
     [inputsKey.GITHUB_TOKEN]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_TOKEN}.` }),
-    [inputsKey.GITHUB_OWNER]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_OWNER}.` }),
-    [inputsKey.GITHUB_REPO]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_REPO}.` }),
+    [inputsKey.GITHUB_REPOSITORY]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_REPOSITORY}.` }).transform((value, ctx) => {
+      const [owner, name] = value.split("/");
+      if (!name) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Missing name from ${inputsKey.GITHUB_REPOSITORY}.`
+        });
+        return z.NEVER;
+      }
+      return {
+        owner,
+        name
+      };
+    }),
     [inputsKey.GITHUB_BRANCHE]: z.string({ message: `Missing ENV var ${inputsKey.GITHUB_BRANCHE}.` }),
     [inputsKey.REGEXP_PATCH]: z.string({ message: `Missing ENV var ${inputsKey.REGEXP_PATCH}.` }).transform((value) => new RegExp(value)),
     [inputsKey.REGEXP_MINOR]: z.string({ message: `Missing ENV var ${inputsKey.REGEXP_MINOR}.` }).transform((value) => new RegExp(value)),
@@ -47,8 +58,8 @@ const octokit = new Octokit({
 });
 const closedPullRequestCollection = await async function getPullRequestTitles(page = 1) {
   const closedPullRequests = await octokit.pulls.list({
-    owner: inputs.GITHUB_OWNER,
-    repo: inputs.GITHUB_REPO,
+    owner: inputs.GITHUB_REPOSITORY.owner,
+    repo: inputs.GITHUB_REPOSITORY.name,
     state: "closed",
     base: inputs.GITHUB_BRANCHE,
     per_page: inputs.PER_PAGE,

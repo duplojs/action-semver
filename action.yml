@@ -4,9 +4,7 @@ description: 'Compute semver from pull request titles.'
 inputs:
   GITHUB_TOKEN:
     required: true
-  GITHUB_OWNER:
-    required: true
-  GITHUB_REPO:
+  GITHUB_REPOSITORY:
     required: true
   GITHUB_BRANCHE:
     required: true

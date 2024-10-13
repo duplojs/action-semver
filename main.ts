@@ -4,8 +4,7 @@ import { Octokit } from "@octokit/rest";
 
 type InputsKey =
     | "GITHUB_TOKEN"
-    | "GITHUB_OWNER"
-    | "GITHUB_REPO"
+    | "GITHUB_REPOSITORY"
     | "GITHUB_BRANCHE"
 
     | "REGEXP_PATCH"
@@ -22,8 +21,7 @@ type InputsKey =
 
 const inputsKey: { [P in InputsKey]: P } = {
     GITHUB_TOKEN: "GITHUB_TOKEN",
-    GITHUB_OWNER: "GITHUB_OWNER",
-    GITHUB_REPO: "GITHUB_REPO",
+    GITHUB_REPOSITORY: "GITHUB_REPOSITORY",
     GITHUB_BRANCHE: "GITHUB_BRANCHE",
 
     REGEXP_PATCH: "REGEXP_PATCH",
@@ -42,8 +40,25 @@ const inputsKey: { [P in InputsKey]: P } = {
 const inputs = zod.object(
     {
         [inputsKey.GITHUB_TOKEN]: zod.string({ message: `Missing ENV var ${inputsKey.GITHUB_TOKEN}.` }),
-        [inputsKey.GITHUB_OWNER]: zod.string({ message: `Missing ENV var ${inputsKey.GITHUB_OWNER}.` }),
-        [inputsKey.GITHUB_REPO]: zod.string({ message: `Missing ENV var ${inputsKey.GITHUB_REPO}.` }),
+        [inputsKey.GITHUB_REPOSITORY]: zod
+            .string({ message: `Missing ENV var ${inputsKey.GITHUB_REPOSITORY}.` })
+            .transform((value, ctx) => {
+                const [owner, name] = value.split("/");
+                
+                if(!name){
+                    ctx.addIssue({
+                        code: "custom",
+                        message: `Missing name from ${inputsKey.GITHUB_REPOSITORY}.`,
+                    })
+
+                    return zod.NEVER
+                }
+
+                return {
+                    owner,
+                    name,
+                }
+            }),
         [inputsKey.GITHUB_BRANCHE]: zod.string({ message: `Missing ENV var ${inputsKey.GITHUB_BRANCHE}.` }),
 
         [inputsKey.REGEXP_PATCH]: zod.string({ message: `Missing ENV var ${inputsKey.REGEXP_PATCH}.` }).transform(value => new RegExp(value)),
@@ -76,8 +91,8 @@ const closedPullRequestCollection = await (
     async function getPullRequestTitles(page = 1): Promise<Awaited<ReturnType<typeof octokit.pulls.list>>["data"]>
     {
         const closedPullRequests = await octokit.pulls.list({
-            owner: inputs.GITHUB_OWNER,
-            repo: inputs.GITHUB_REPO,
+            owner: inputs.GITHUB_REPOSITORY.owner,
+            repo: inputs.GITHUB_REPOSITORY.name,
             state: "closed",
             base: inputs.GITHUB_BRANCHE,
             per_page: inputs.PER_PAGE,
